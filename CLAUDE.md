@@ -32,7 +32,7 @@ src/
 │   ├── Interfaces/       IJobService, ICandidateService, IMatchService, IAIMatchService
 │   └── Services/         JobService.cs, CandidateService.cs, MatchService.cs
 ├── RecruitMatch.Infrastructure/
-│   ├── AI/               GroqMatchService.cs (pendente)
+│   ├── AI/               GroqMatchService.cs, GroqSettings.cs, PromptTemplates.cs
 │   └── Persistence/
 │       └── Repositories/ MongoJobRepository, MongoCandidateRepository, MongoMatchRepository (pendente)
 └── RecruitMatch.API/
@@ -70,12 +70,14 @@ src/
 ## Status atual
 - [x] Domain completo (entidades, value objects, enums, interfaces)
 - [x] Application completo (DTOs, interfaces, services)
-- [ ] Infrastructure — próximo passo: GroqMatchService (AI/GroqMatchService.cs)
+- [x] Infrastructure — GroqMatchService (AI/GroqMatchService.cs, GroqSettings.cs, PromptTemplates.cs)
 - [ ] Infrastructure — repositórios MongoDB
 - [ ] API — controllers, Program.cs, DI, Swagger
 - [ ] Deploy
 
 ## Próximo passo
-Criar `GroqMatchService` em `src/RecruitMatch.Infrastructure/AI/`.
-Ele implementa `IAIMatchService`, chama `POST https://api.groq.com/openai/v1/chat/completions`
-com Authorization Bearer, monta prompt com Job + Candidate e parseia JSON estruturado de volta.
+Criar os repositórios MongoDB em `src/RecruitMatch.Infrastructure/Persistence/Repositories/`.
+- Classe base `MongoRepository<T>` implementando `IRepository<T>` (injetar `IMongoDatabase`)
+- `MongoJobRepository`, `MongoCandidateRepository`, `MongoMatchRepository`
+- `BsonClassMap` para mapear entidades do Domain (sem atributos no Domain)
+- Registrar BsonClassMap numa classe estática separada (ex: `BsonMappings.cs`)
