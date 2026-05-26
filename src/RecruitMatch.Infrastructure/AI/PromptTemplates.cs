@@ -4,7 +4,11 @@ namespace RecruitMatch.Infrastructure.AI;
 
 internal static class PromptTemplates
 {
-	public static string MatchAnalysis(Job job, Candidate candidate) => $"""
+	public static string SystemPrompt() => $"""
+	Você é um especialista em recrutamento e seleção, responsável por analisar a compatibilidade entre candidatos e vagas de emprego com base em seus currículos e descrições de vagas.
+	""";
+	
+	public static string UserPrompt(Job job, Candidate candidate) => $"""
 	- Vaga: {job.Title} ({job.Seniority})
 	- Descrição: {job.Description}
 	- Requisitos obrigatórios: {string.Join(", ", job.Requirements.Required)}
