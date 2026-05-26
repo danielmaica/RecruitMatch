@@ -20,7 +20,7 @@ public class Candidate : AggregateRoot
 		Name = name;
 		Email = email ?? throw new ArgumentNullException(nameof(email));
 		Resume = resume;
-		Skills = skills.ToList() ?? [];
+		Skills = [.. skills];
 	}
 
 	public void Update(string name, Email email, string resume, IEnumerable<string> skills)
@@ -34,7 +34,7 @@ public class Candidate : AggregateRoot
 		Name = name;
 		Email = email ?? throw new ArgumentNullException(nameof(email));
 		Resume = resume;
-		Skills = skills.ToList() ?? [];
+		Skills = [.. skills];
 		OnUpdate();
 	}
 }
