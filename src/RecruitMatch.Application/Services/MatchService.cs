@@ -62,7 +62,7 @@ public class MatchService : IMatchService
 
 	public async Task<IReadOnlyList<MatchResponse>> GetByJobIdAsync(string jobId, CancellationToken ct = default)
 	{
-		var matches = await _matchRepository.GetByJobIdAsync(jobId, ct);
+		var matches = await _matchRepository.GetAllAsync(m => m.JobId == jobId, ct);
 		return [.. matches.Select(ToResponse)];
 	}
 
