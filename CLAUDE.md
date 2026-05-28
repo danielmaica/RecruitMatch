@@ -4,9 +4,9 @@ API de análise de fit entre candidatos e vagas usando IA (Groq).
 
 ## Stack
 - .NET 9
-- MongoDB (MongoDB.Driver, sem atributos no Domain — usar BsonClassMap na Infrastructure)
-- Groq API via HTTP (modelo a definir, ex: llama-3.3-70b-versatile)
-- Swagger
+- MongoDB (MongoDB.Driver, sem atributos no Domain — BsonClassMap na Infrastructure)
+- Groq API via HTTP (modelo: llama-3.3-70b-versatile)
+- Scalar (documentação da API)
 
 ## Arquitetura
 Clean Architecture + DDD. Regra de dependência:
@@ -27,16 +27,18 @@ src/
 │   └── Interfaces/       IRepository.cs, IJobRepository.cs, ICandidateRepository.cs, IMatchRepository.cs
 ├── RecruitMatch.Application/
 │   ├── DTOs/
-│   │   ├── Requests/     CreateJobRequest, UpdateJobRequest, RegisterCandidateRequest, UpdateCandidateRequest
+│   │   ├── Requests/     CreateJobRequest, UpdateJobRequest, CreateCandidateRequest, UpdateCandidateRequest
 │   │   └── Responses/    JobResponse, CandidateResponse, MatchResponse, MatchAIResult
 │   ├── Interfaces/       IJobService, ICandidateService, IMatchService, IAIMatchService
 │   └── Services/         JobService.cs, CandidateService.cs, MatchService.cs
 ├── RecruitMatch.Infrastructure/
-│   ├── AI/               GroqMatchService.cs, GroqSettings.cs, PromptTemplates.cs
+│   ├── AI/               AIMatchService.cs, GroqSettings.cs, PromptTemplates.cs
 │   └── Persistence/
-│       └── Repositories/ MongoJobRepository, MongoCandidateRepository, MongoMatchRepository (pendente)
+│       ├── BsonMappings.cs
+│       ├── MongoDbSettings.cs
+│       └── Repositories/ Repository.cs, JobRepository.cs, CandidateRepository.cs, MatchRepository.cs
 └── RecruitMatch.API/
-    └── Controllers/      JobsController, CandidatesController, MatchesController (pendente)
+    └── Controllers/      JobsController, CandidatesController, MatchesController
 ```
 
 ## Decisões tomadas
@@ -67,17 +69,27 @@ src/
 - `POST   /api/jobs/{id}/analyze`     → analisar todos candidatos para a vaga
 - `GET    /api/jobs/{id}/matches`     → buscar resultados de análise da vaga
 
+## Decisões adicionais
+- `IRepository<T>` expõe overloads com `Expression<Func<T, bool>>` para queries com predicate
+- `PhysicalDeleteAsync` disponível no repositório base além do soft delete padrão
+- `BsonClassMap` com `MapConstructor` para entidades e `MapCreator` para Value Objects
+- Resultados de análise ordenados por score descendente no `MatchService`
+- Middleware global de exceções mapeia `KeyNotFoundException` → 404, `ArgumentException` → 400
+- Scalar no lugar do Swashbuckle para documentação da API
+- Named HttpClient "groq" configurado no `Program.cs` com `BaseAddress` e `Authorization`
+- Controllers em `Controllers/Api/V1/` para suporte a versionamento futuro
+
 ## Status atual
 - [x] Domain completo (entidades, value objects, enums, interfaces)
 - [x] Application completo (DTOs, interfaces, services)
-- [x] Infrastructure — GroqMatchService (AI/GroqMatchService.cs, GroqSettings.cs, PromptTemplates.cs)
-- [ ] Infrastructure — repositórios MongoDB
-- [ ] API — controllers, Program.cs, DI, Swagger
+- [x] Infrastructure — AIMatchService, repositórios MongoDB, BsonMappings
+- [x] API — controllers, Program.cs, DI, Scalar, middleware de exceções
 - [ ] Deploy
 
 ## Próximo passo
-Criar os repositórios MongoDB em `src/RecruitMatch.Infrastructure/Persistence/Repositories/`.
-- Classe base `MongoRepository<T>` implementando `IRepository<T>` (injetar `IMongoDatabase`)
-- `MongoJobRepository`, `MongoCandidateRepository`, `MongoMatchRepository`
-- `BsonClassMap` para mapear entidades do Domain (sem atributos no Domain)
-- Registrar BsonClassMap numa classe estática separada (ex: `BsonMappings.cs`)
+O MVP está funcional. Possíveis melhorias:
+- Deploy (Azure, Railway, Render, etc.)
+- Testes unitários e de integração
+- Paginação nos endpoints de listagem
+- Autenticação/autorização
+- Logging estruturado
