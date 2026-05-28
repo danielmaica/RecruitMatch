@@ -57,13 +57,13 @@ public class MatchService : IMatchService
 			results.Add(ToResponse(match));
 		}
 
-		return results;
+		return [.. results.OrderByDescending(r => r.Score)];
 	}
 
 	public async Task<IReadOnlyList<MatchResponse>> GetByJobIdAsync(string jobId, CancellationToken ct = default)
 	{
 		var matches = await _matchRepository.GetAllAsync(m => m.JobId == jobId, ct);
-		return [.. matches.Select(ToResponse)];
+		return [.. matches.Select(ToResponse).OrderByDescending(r => r.Score)];
 	}
 
 	private static MatchResponse ToResponse(Match match) => new(
