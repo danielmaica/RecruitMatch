@@ -1,6 +1,3 @@
-## Secrets
-**/appsettings.Development.json
-
 ## .NET
 bin/
 obj/
