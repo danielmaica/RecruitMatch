@@ -2,16 +2,16 @@ namespace RecruitMatch.Domain.ValueObjects;
 
 public record Email
 {
-	public string Value { get; }
+	public string Address { get; }
 
-	public Email(string value)
+	public Email(string address)
 	{
-		if (string.IsNullOrWhiteSpace(value))
-			throw new ArgumentException("Email não pode ser vazio.", nameof(value));
+		if (string.IsNullOrWhiteSpace(address))
+			throw new ArgumentException("Email não pode ser vazio.", nameof(address));
 
-		if (!value.Contains('@') || !value.Contains('.'))
-			throw new ArgumentException($"Email inválido: {value}", nameof(value));
+		if (!address.Contains('@') || !address.Contains('.'))
+			throw new ArgumentException($"Email inválido: {address}", nameof(address));
 
-		Value = value.Trim().ToLowerInvariant();
+		Address = address.Trim().ToLowerInvariant();
 	}
 }

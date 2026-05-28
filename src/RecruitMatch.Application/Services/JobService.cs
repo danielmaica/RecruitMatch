@@ -31,8 +31,9 @@ public class JobService : IJobService
 
 	public async Task<JobResponse?> GetByIdAsync(string id, CancellationToken ct = default)
 	{
-		var job = await _repository.GetByIdAsync(id, ct);
-		return job is null ? null : ToResponse(job);
+		var job = await _repository.GetByIdAsync(id, ct)
+			?? throw new KeyNotFoundException($"Vaga {id} não encontrada.");
+		return ToResponse(job);
 	}
 
 	public async Task<IReadOnlyList<JobResponse>> GetAllAsync(CancellationToken ct = default)

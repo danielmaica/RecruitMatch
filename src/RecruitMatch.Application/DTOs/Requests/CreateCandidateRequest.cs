@@ -1,6 +1,6 @@
 namespace RecruitMatch.Application.DTOs.Requests;
 
-public record RegisterCandidateRequest(
+public record CreateCandidateRequest(
 	string Name,
 	string Email,
 	string Resume,
