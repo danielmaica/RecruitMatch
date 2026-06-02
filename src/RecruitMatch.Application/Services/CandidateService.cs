@@ -27,8 +27,9 @@ public class CandidateService : ICandidateService
 
 	public async Task<CandidateResponse?> GetByIdAsync(string id, CancellationToken ct = default)
 	{
-		var candidate = await _repository.GetByIdAsync(id, ct);
-		return candidate is null ? null : ToResponse(candidate);
+		var candidate = await _repository.GetByIdAsync(id, ct)
+			?? throw new KeyNotFoundException($"Candidato {id} não encontrado.");
+		return ToResponse(candidate);
 	}
 
 	public async Task<IReadOnlyList<CandidateResponse>> GetAllAsync(CancellationToken ct = default)

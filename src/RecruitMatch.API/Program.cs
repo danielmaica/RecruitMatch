@@ -47,6 +47,7 @@ builder.Services.AddHttpClient("groq", client =>
 {
 	client.BaseAddress = new Uri(groqSettings.Uri);
 	client.DefaultRequestHeaders.Add("Authorization", $"Bearer {groqSettings.ApiKey}");
+	client.Timeout = TimeSpan.FromSeconds(30);
 });
 
 // Mapper

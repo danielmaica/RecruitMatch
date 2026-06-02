@@ -28,7 +28,7 @@ public class AIMatchService : IAIMatchService
 		var systemPrompt = PromptTemplates.SystemPrompt();
 		var userPrompt = PromptTemplates.MatchAnalysisPrompt(job, candidate);
 
-		var httpClient = _httpClientFactory.CreateClient();
+		var httpClient = _httpClientFactory.CreateClient("groq");
 
 		var body = new
 		{
@@ -47,8 +47,6 @@ public class AIMatchService : IAIMatchService
 				}
 			}
 		};
-
-		httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
 
 		var response = await httpClient.PostAsync(_settings.Uri,
 			new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json"), ct);
@@ -74,7 +72,17 @@ public class AIMatchService : IAIMatchService
 			.Replace("```", "")
 			.Trim();
 
-		return JsonSerializer.Deserialize<MatchAIResult>(modelOutput, options)!;
+		MatchAIResult? result;
+		try
+		{
+			result = JsonSerializer.Deserialize<MatchAIResult>(modelOutput, options);
+		}
+		catch (JsonException ex)
+		{
+			throw new InvalidOperationException($"Não foi possível interpretar a resposta da IA como JSON válido. conteúdo: {modelOutput}", ex);
+		}
+
+		return result ?? throw new InvalidOperationException($"Resposta da IA não contém resultado válido. Conteúdo: {modelOutput}");
 	}
 
 	private record GroqResponse(List<GroqChoice> Choices);

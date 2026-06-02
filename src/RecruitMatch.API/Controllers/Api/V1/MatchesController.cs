@@ -21,12 +21,12 @@ namespace RecruitMatch.API.Controllers.Api.V1
 		/// <param name="ct">Token de cancelamento</param>
 		/// <returns>A correspondência obtida</returns>
 		[HttpPost("analyze/{jobId}")]
-		[ProducesResponseType(typeof(IReadOnlyList<MatchResponse>), StatusCodes.Status201Created)]
+		[ProducesResponseType(typeof(MatchAnalysisResponse), StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		public async Task<IActionResult> AnalyzeAsync([FromRoute] string jobId, CancellationToken ct = default)
 		{
 			var matches = await _matchService.AnalyzeAsync(jobId, ct);
-			return Created($"/api/v1/matches/{jobId}", matches);
+			return Ok(matches);
 		}
 
 		/// <summary>Obtém correspondências pelo ID da vaga</summary>

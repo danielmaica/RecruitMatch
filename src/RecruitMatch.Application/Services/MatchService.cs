@@ -26,7 +26,7 @@ public class MatchService : IMatchService
 		_aiMatchService = aiMatchService;
 	}
 
-	public async Task<IReadOnlyList<MatchResponse>> AnalyzeAsync(string jobId, CancellationToken ct = default)
+	public async Task<MatchAnalysisResponse> AnalyzeAsync(string jobId, CancellationToken ct = default)
 	{
 		var job = await _jobRepository.GetByIdAsync(jobId, ct)
 							?? throw new KeyNotFoundException($"Vaga {jobId} não encontrada");
@@ -36,28 +36,43 @@ public class MatchService : IMatchService
 		if (candidates.Count == 0)
 			throw new InvalidOperationException("Nenhum candidato cadastrado para analisar.");
 
-		var results = new List<MatchResponse>();
+		var analyzed = new List<MatchResponse>();
+		var failures = new List<MatchFailure>();
 
 		foreach (var candidate in candidates)
 		{
-			var aiResult = await _aiMatchService.AnalyzeAsync(job, candidate, ct);
+			try
+			{
+				var aiResult = await _aiMatchService.AnalyzeAsync(job, candidate, ct);
 
-			var match = new Match(
-				jobId,
-				candidate.Id,
-				candidate.Name,
-				new MatchScore(aiResult.Score),
-				aiResult.ResumeSummary,
-				aiResult.Justification,
-				aiResult.Strengths,
-				aiResult.Gaps
-			);
+				var match = new Match(
+					jobId,
+					candidate.Id,
+					candidate.Name,
+					new MatchScore(aiResult.Score),
+					aiResult.ResumeSummary,
+					aiResult.Justification,
+					aiResult.Strengths,
+					aiResult.Gaps
+				);
 
-			await _matchRepository.AddAsync(match, ct);
-			results.Add(ToResponse(match));
+				await _matchRepository.AddAsync(match, ct);
+				analyzed.Add(ToResponse(match));
+			}
+			catch (OperationCanceledException)
+			{
+				throw;
+			}
+			catch (Exception ex)
+			{
+				failures.Add(new MatchFailure(candidate.Id, candidate.Name, ex.Message));
+			}
 		}
 
-		return [.. results.OrderByDescending(r => r.Score)];
+		return new MatchAnalysisResponse(
+			[.. analyzed.OrderByDescending(r => r.Score)],
+			failures
+		);
 	}
 
 	public async Task<IReadOnlyList<MatchResponse>> GetByJobIdAsync(string jobId, CancellationToken ct = default)
